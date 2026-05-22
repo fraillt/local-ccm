@@ -149,7 +149,7 @@ jobs:
             sed -i "s|{GIT_TAG_VERSION}|${{ needs.prepare-release-metadata.outputs.version }}|g" "${file}"
           done < <(find "${workdir}/deploy" "${workdir}/chart" -type f -name '*.yaml' -print0)
 
-          if grep -R -n '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart"; then
+          if find "${workdir}/deploy" "${workdir}/chart" -type f -name '*.yaml' -exec grep -nH '{GIT_TAG_VERSION}' {} +; then
             echo "Unreplaced {GIT_TAG_VERSION} placeholders remain in generated artifacts"
             exit 1
           fi
