@@ -53,13 +53,17 @@ jobs:
         shell: bash
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "value=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
-            echo "publish=true" >> "${GITHUB_OUTPUT}"
-            echo "platforms=linux/amd64,linux/arm64" >> "${GITHUB_OUTPUT}"
+            {
+              echo "value=${GITHUB_REF_NAME}"
+              echo "publish=true"
+              echo "platforms=linux/amd64,linux/arm64"
+            } >> "${GITHUB_OUTPUT}"
           else
-            echo "value=sha-${GITHUB_SHA::7}" >> "${GITHUB_OUTPUT}"
-            echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "platforms=linux/amd64" >> "${GITHUB_OUTPUT}"
+            {
+              echo "value=sha-${GITHUB_SHA::7}"
+              echo "publish=false"
+              echo "platforms=linux/amd64"
+            } >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Set up QEMU
@@ -103,9 +107,13 @@ jobs:
         shell: bash
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "value=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+            {
+              echo "value=${GITHUB_REF_NAME}"
+            } >> "${GITHUB_OUTPUT}"
           else
-            echo "value=sha-${GITHUB_SHA::7}" >> "${GITHUB_OUTPUT}"
+            {
+              echo "value=sha-${GITHUB_SHA::7}"
+            } >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Generate versioned manifests
