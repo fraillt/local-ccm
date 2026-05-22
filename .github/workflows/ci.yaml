@@ -90,7 +90,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and optionally publish image
@@ -168,7 +168,7 @@ jobs:
             cd "${artifacts_dir}"
             tmp_sums="$(mktemp)"
             for file in ./*; do
-              sha256sum "$(basename "${file}")"
+              sha256sum "${file#./}"
             done > "${tmp_sums}"
             mv "${tmp_sums}" SHA256SUMS
           )
