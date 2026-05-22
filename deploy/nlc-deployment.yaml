@@ -36,7 +36,7 @@ spec:
                     operator: Exists
       containers:
         - name: node-lifecycle-controller
-          image: ghcr.io/cozystack/local-ccm:v0.3.0
+          image: ghcr.io/fraillt/local-ccm:{GIT_TAG_VERSION}
           imagePullPolicy: IfNotPresent
           command:
             - /usr/local/bin/node-lifecycle-controller
