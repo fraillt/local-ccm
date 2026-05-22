@@ -176,6 +176,7 @@ The following command-line flags are available:
 | `--node-name` | Name of the node to update (use NODE_NAME env var) | - | Yes |
 | `--internal-ip-target` | Target IP for internal IP detection via netlink. If empty, internal IP detection is disabled | `""` (disabled) | No |
 | `--external-ip-target` | Target IP for external IP detection via netlink | `"8.8.8.8"` | No |
+| `--external-ip-subnet` | CIDR subnet to select external IP from (e.g. `203.0.113.0/24`). If set, the interface IP matching this subnet is used as ExternalIP; falls back to `--external-ip-target` if no match is found | `""` (disabled) | No |
 | `--remove-taint` | Remove node.cloudprovider.kubernetes.io/uninitialized taint | `true` | No |
 | `--reconcile-interval` | Interval between reconciliation loops | `10s` | No |
 | `--run-once` | Run once and exit instead of running in a loop | `false` | No |
@@ -183,6 +184,17 @@ The following command-line flags are available:
 | `--v` | Log level (0-5) | `0` | No |
 
 ### Example Configurations
+
+#### Using Subnet-Based External IP Detection
+
+```yaml
+args:
+- --node-name=$(NODE_NAME)
+- --external-ip-subnet=203.0.113.0/24
+- --reconcile-interval=10s
+```
+
+This selects the interface IP that falls within `203.0.113.0/24` as the ExternalIP. If no interface matches the subnet, detection falls back to `--external-ip-target`.
 
 #### Only External IP (Default)
 
