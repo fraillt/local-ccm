@@ -52,7 +52,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             {
               echo "value=${GITHUB_REF_NAME}"
               echo "publish=true"
@@ -140,14 +140,14 @@ jobs:
 
           for file in "${expected_files[@]}"; do
             if ! grep -q '{GIT_TAG_VERSION}' "${workdir}/${file}"; then
-              echo "Missing {GIT_TAG_VERSION} placeholder in ${file}"
+              echo "Missing {GIT_TAG_VERSION} placeholder in ${workdir}/${file}"
               exit 1
             fi
           done
 
           while IFS= read -r -d '' file; do
             sed -i "s|{GIT_TAG_VERSION}|${{ needs.prepare-release-metadata.outputs.version }}|g" "${file}"
-          done < <(find "${workdir}/deploy" "${workdir}/chart" -type f \( -name '*.yaml' -o -name 'README.md' \) -print0)
+          done < <(find "${workdir}/deploy" "${workdir}/chart" -type f -name '*.yaml' -print0)
 
           if grep -R -n '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart"; then
             echo "Unreplaced {GIT_TAG_VERSION} placeholders remain in generated artifacts"
@@ -166,12 +166,11 @@ jobs:
 
           (
             cd "${artifacts_dir}"
+            tmp_sums="$(mktemp)"
             for file in ./*; do
-              if [[ "$(basename "${file}")" == "SHA256SUMS" ]]; then
-                continue
-              fi
               sha256sum "$(basename "${file}")"
-            done > SHA256SUMS
+            done > "${tmp_sums}"
+            mv "${tmp_sums}" SHA256SUMS
           )
 
       - name: Upload manifest artifacts
