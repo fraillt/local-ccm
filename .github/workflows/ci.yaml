@@ -95,7 +95,9 @@ jobs:
           cache-to: type=gha,mode=max
 
   publish-manifests:
-    needs: validate
+    needs:
+      - validate
+      - build-image
     runs-on: ubuntu-latest
 
     steps:
@@ -146,7 +148,10 @@ jobs:
           helm template local-ccm "${workdir}/chart" --namespace kube-system > "${artifacts_dir}/local-ccm-helm.yaml"
           helm package "${workdir}/chart" --destination "${artifacts_dir}"
 
-          sha256sum "${artifacts_dir}"/* > "${artifacts_dir}/SHA256SUMS"
+          (
+            cd "${artifacts_dir}"
+            sha256sum * > SHA256SUMS
+          )
 
       - name: Upload manifest artifacts
         uses: actions/upload-artifact@v4
