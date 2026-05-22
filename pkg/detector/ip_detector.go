@@ -24,8 +24,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// DetectIPBySubnet finds the local IP address of the interface whose IP falls
+// DetectIPBySubnet finds the local IP address of the first up interface whose IP falls
 // within the given CIDR subnet. Returns an error if no matching interface is found.
+// If multiple interfaces have IPs in the subnet, the first one in enumeration order is returned.
 func DetectIPBySubnet(subnet string) (string, error) {
 	if subnet == "" {
 		return "", fmt.Errorf("subnet is empty")
@@ -42,6 +43,10 @@ func DetectIPBySubnet(subnet string) (string, error) {
 	}
 
 	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			klog.V(4).Infof("Skipping interface %s: interface is down", iface.Name)
+			continue
+		}
 		addrs, err := iface.Addrs()
 		if err != nil {
 			klog.V(4).Infof("Skipping interface %s: failed to get addresses: %v", iface.Name, err)
