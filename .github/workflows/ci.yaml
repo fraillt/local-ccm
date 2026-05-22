@@ -127,6 +127,7 @@ jobs:
           set -euo pipefail
 
           workdir="$(mktemp -d)"
+          trap 'rm -rf "${workdir}"' EXIT
           artifacts_dir="${RUNNER_TEMP}/local-ccm-artifacts"
           rm -rf "${artifacts_dir}"
           mkdir -p "${artifacts_dir}"
@@ -134,9 +135,20 @@ jobs:
           cp -R deploy "${workdir}/deploy"
           cp -R charts/local-ccm "${workdir}/chart"
 
+          placeholder_count="$( (grep -R -o '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart" || true) | wc -l )"
+          if [[ "${placeholder_count}" -eq 0 ]]; then
+            echo "Expected at least one {GIT_TAG_VERSION} placeholder to replace"
+            exit 1
+          fi
+
           while IFS= read -r -d '' file; do
             sed -i "s|{GIT_TAG_VERSION}|${{ steps.version.outputs.value }}|g" "${file}"
           done < <(find "${workdir}/deploy" "${workdir}/chart" -type f \( -name '*.yaml' -o -name 'Chart.yaml' -o -name 'README.md' \) -print0)
+
+          if grep -R -q '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart"; then
+            echo "Unreplaced {GIT_TAG_VERSION} placeholders remain in generated artifacts"
+            exit 1
+          fi
 
           cat \
             "${workdir}/deploy/rbac.yaml" \
