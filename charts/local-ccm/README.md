@@ -54,8 +54,8 @@ helm install local-ccm ./charts/local-ccm \
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `image.repository` | Container image repository | `ghcr.io/cozystack/local-ccm` |
-| `image.tag` | Container image tag | `v0.1.0` |
+| `image.repository` | Container image repository | `ghcr.io/fraillt/local-ccm` |
+| `image.tag` | Container image tag | `{GIT_TAG_VERSION}` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 | `serviceAccount.create` | Create service account | `true` |
 | `serviceAccount.name` | Service account name | `local-ccm` |

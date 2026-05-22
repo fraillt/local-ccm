@@ -1,6 +1,6 @@
 .PHONY: image all
 
-REGISTRY ?= ghcr.io/cozystack
+REGISTRY ?= ghcr.io/fraillt
 TAG ?= latest
 PUSH ?= 1
 LOAD ?= 0

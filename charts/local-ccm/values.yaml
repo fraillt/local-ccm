@@ -1,8 +1,8 @@
 # Default values for local-ccm
 
 image:
-  repository: ghcr.io/cozystack/local-ccm
-  tag: v0.3.0
+  repository: ghcr.io/fraillt/local-ccm
+  tag: "{GIT_TAG_VERSION}"
   pullPolicy: Always
 # Service account configuration
 serviceAccount:
@@ -60,8 +60,8 @@ nodeLifecycleController:
   # Enable node lifecycle controller
   enabled: true
   image:
-    repository: ghcr.io/cozystack/local-ccm
-    tag: "v0.3.0" # Defaults to appVersion
+    repository: ghcr.io/fraillt/local-ccm
+    tag: "{GIT_TAG_VERSION}" # Defaults to appVersion
     pullPolicy: IfNotPresent
   # Controller configuration
   controller:

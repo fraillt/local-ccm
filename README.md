@@ -90,15 +90,15 @@ The controller uses priority-based filtering:
 1. Apply the manifests:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/daemonset.yaml
+kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/daemonset.yaml
 ```
 
 2. (Optional) Deploy node-lifecycle-controller:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/nlc-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/nlc-deployment.yaml
+kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/nlc-rbac.yaml
+kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/nlc-deployment.yaml
 ```
 
 3. Verify deployment:
@@ -149,8 +149,8 @@ machine:
       cloud-provider: external
 cluster:
   manifests:
-  - url: https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/rbac.yaml
-  - url: https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/daemonset.yaml
+  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/rbac.yaml
+  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/daemonset.yaml
 ```
 
 This configuration:
@@ -318,7 +318,7 @@ CGO_ENABLED=0 go build -o node-lifecycle-controller ./cmd/node-lifecycle-control
 ### Build Container Image
 
 ```bash
-docker build -t ghcr.io/cozystack/local-ccm:latest .
+docker build -t ghcr.io/fraillt/local-ccm:latest .
 ```
 
 ## Development
