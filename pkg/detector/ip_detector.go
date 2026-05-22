@@ -24,6 +24,50 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// DetectIPBySubnet finds the local IP address of the interface whose IP falls
+// within the given CIDR subnet. Returns an error if no matching interface is found.
+func DetectIPBySubnet(subnet string) (string, error) {
+	if subnet == "" {
+		return "", fmt.Errorf("subnet is empty")
+	}
+
+	_, ipNet, err := net.ParseCIDR(subnet)
+	if err != nil {
+		return "", fmt.Errorf("invalid subnet %q: %w", subnet, err)
+	}
+
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("failed to list network interfaces: %w", err)
+	}
+
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			klog.V(4).Infof("Skipping interface %s: failed to get addresses: %v", iface.Name, err)
+			continue
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil {
+				continue
+			}
+			if ipNet.Contains(ip) {
+				klog.V(4).Infof("Found IP %s on interface %s matching subnet %s", ip.String(), iface.Name, subnet)
+				return ip.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no interface found with IP in subnet %s", subnet)
+}
+
 // DetectIP detects the local IP address by using netlink to query the route
 // to the target IP and extracting the source IP from the route
 func DetectIP(targetIP string) (string, error) {
