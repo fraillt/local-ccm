@@ -150,7 +150,12 @@ jobs:
 
           (
             cd "${artifacts_dir}"
-            sha256sum * > SHA256SUMS
+            for file in ./*; do
+              if [[ "$(basename "${file}")" == "SHA256SUMS" ]]; then
+                continue
+              fi
+              sha256sum "$(basename "${file}")"
+            done > SHA256SUMS
           )
 
       - name: Upload manifest artifacts
