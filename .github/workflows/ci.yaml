@@ -104,6 +104,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   publish-manifests:
+    if: github.event_name != 'pull_request'
     needs:
       - validate
       - prepare-release-metadata
