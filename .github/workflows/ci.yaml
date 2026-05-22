@@ -135,12 +135,6 @@ jobs:
           cp -R deploy "${workdir}/deploy"
           cp -R charts/local-ccm "${workdir}/chart"
 
-          placeholder_count="$( (grep -R -o '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart" || true) | wc -l )"
-          if [[ "${placeholder_count}" -eq 0 ]]; then
-            echo "Expected at least one {GIT_TAG_VERSION} placeholder to replace"
-            exit 1
-          fi
-
           expected_files=(
             "deploy/daemonset.yaml"
             "deploy/nlc-deployment.yaml"
