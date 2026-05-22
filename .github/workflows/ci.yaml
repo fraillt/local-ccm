@@ -141,11 +141,25 @@ jobs:
             exit 1
           fi
 
+          expected_files=(
+            "deploy/daemonset.yaml"
+            "deploy/nlc-deployment.yaml"
+            "chart/Chart.yaml"
+            "chart/values.yaml"
+          )
+
+          for file in "${expected_files[@]}"; do
+            if ! grep -q '{GIT_TAG_VERSION}' "${workdir}/${file}"; then
+              echo "Missing {GIT_TAG_VERSION} placeholder in ${file}"
+              exit 1
+            fi
+          done
+
           while IFS= read -r -d '' file; do
             sed -i "s|{GIT_TAG_VERSION}|${{ steps.version.outputs.value }}|g" "${file}"
           done < <(find "${workdir}/deploy" "${workdir}/chart" -type f \( -name '*.yaml' -o -name 'Chart.yaml' -o -name 'README.md' \) -print0)
 
-          if grep -R -q '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart"; then
+          if grep -R -n '{GIT_TAG_VERSION}' "${workdir}/deploy" "${workdir}/chart"; then
             echo "Unreplaced {GIT_TAG_VERSION} placeholders remain in generated artifacts"
             exit 1
           fi
