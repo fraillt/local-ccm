@@ -170,7 +170,10 @@ jobs:
 
           if [[ "${{ needs.prepare-release-metadata.outputs.publish }}" == "true" ]]; then
             echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
-            helm package "${workdir}/chart" --destination "${workdir}"
+            helm package \
+              "${workdir}/chart" \
+              --destination "${workdir}" \
+              --version "${{ needs.prepare-release-metadata.outputs.version }}"
             helm push "${workdir}/local-ccm-${{ needs.prepare-release-metadata.outputs.version }}.tgz" oci://ghcr.io/fraillt
           fi
 

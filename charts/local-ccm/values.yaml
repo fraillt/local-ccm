@@ -10,6 +10,11 @@ serviceAccount:
   name: local-ccm
 # IP detection configuration
 ipDetection:
+  # Target subnet for external IP detection
+  # by scanning all node interfaces and looking for an IP in this subnet.
+  # if IP is not found or subnet is empty, external IP detection falls
+  # back to 'ip route get' method.
+  externalIPSubnet: ""
   # Target IP for external IP detection via 'ip route get'
   externalIPTarget: "8.8.8.8"
   # Target IP for internal IP detection via 'ip route get'
