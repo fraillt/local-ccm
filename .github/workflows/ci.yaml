@@ -174,7 +174,7 @@ jobs:
               "${workdir}/chart" \
               --destination "${workdir}" \
               --version "${{ needs.prepare-release-metadata.outputs.version }}"
-            helm push "${workdir}/local-ccm-${{ needs.prepare-release-metadata.outputs.version }}.tgz" oci://ghcr.io/fraillt
+            helm push "${workdir}/local-ccm-${{ needs.prepare-release-metadata.outputs.version }}.tgz" oci://ghcr.io/fraillt/charts
           fi
 
       - name: Upload manifest artifacts
