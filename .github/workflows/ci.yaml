@@ -110,6 +110,9 @@ jobs:
       - prepare-release-metadata
       - build-image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -158,21 +161,18 @@ jobs:
           cat \
             "${workdir}/deploy/rbac.yaml" \
             "${workdir}/deploy/daemonset.yaml" \
+            > "${artifacts_dir}/local-ccm.yaml"
+
+          cat \
             "${workdir}/deploy/nlc-rbac.yaml" \
             "${workdir}/deploy/nlc-deployment.yaml" \
-            > "${artifacts_dir}/local-ccm-static.yaml"
+            > "${artifacts_dir}/node-lifecycle-controller"
 
-          helm template local-ccm "${workdir}/chart" --namespace kube-system > "${artifacts_dir}/local-ccm-helm.yaml"
-          helm package "${workdir}/chart" --destination "${artifacts_dir}"
-
-          (
-            cd "${artifacts_dir}"
-            tmp_sums="$(mktemp)"
-            for file in ./*; do
-              sha256sum "${file#./}"
-            done > "${tmp_sums}"
-            mv "${tmp_sums}" SHA256SUMS
-          )
+          if [[ "${{ needs.prepare-release-metadata.outputs.publish }}" == "true" ]]; then
+            echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
+            helm package "${workdir}/chart" --destination "${workdir}"
+            helm push "${workdir}/local-ccm-${{ needs.prepare-release-metadata.outputs.version }}.tgz" oci://ghcr.io/fraillt
+          fi
 
       - name: Upload manifest artifacts
         uses: actions/upload-artifact@v4
