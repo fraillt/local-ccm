@@ -166,7 +166,7 @@ jobs:
           cat \
             "${workdir}/deploy/nlc-rbac.yaml" \
             "${workdir}/deploy/nlc-deployment.yaml" \
-            > "${artifacts_dir}/node-lifecycle-controller"
+            > "${artifacts_dir}/node-lifecycle-controller.yaml"
 
           if [[ "${{ needs.prepare-release-metadata.outputs.publish }}" == "true" ]]; then
             echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
