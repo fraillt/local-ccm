@@ -2,6 +2,8 @@
 
 Local Cloud Controller Manager for Kubernetes - automatically detects and manages node IP addresses.
 
+This directory is a release template. Render it first with `make render RELEASE_VERSION=<version> REPOSITORY_OWNER=<owner>` or install the published OCI chart.
+
 ## Features
 
 - Automatic node IP address detection using routing table
@@ -17,7 +19,7 @@ Local Cloud Controller Manager for Kubernetes - automatically detects and manage
 Install with default configuration:
 
 ```bash
-helm install local-ccm ./charts/local-ccm --namespace kube-system
+helm install local-ccm oci://ghcr.io/<owner>/charts/local-ccm --version <version> --namespace kube-system
 ```
 
 ### Custom Configuration
@@ -36,7 +38,7 @@ controller:
 Install with custom values:
 
 ```bash
-helm install local-ccm ./charts/local-ccm \
+helm install local-ccm build/templates/charts/local-ccm \
   --namespace kube-system \
   --values values.yaml
 ```
@@ -44,7 +46,7 @@ helm install local-ccm ./charts/local-ccm \
 ### Inline Configuration
 
 ```bash
-helm install local-ccm ./charts/local-ccm \
+helm install local-ccm build/templates/charts/local-ccm \
   --namespace kube-system \
   --set ipDetection.externalIPTarget=1.1.1.1 \
   --set ipDetection.internalIPTarget=10.0.0.1
@@ -83,7 +85,7 @@ helm uninstall local-ccm --namespace kube-system
 ## Upgrading
 
 ```bash
-helm upgrade local-ccm ./charts/local-ccm \
+helm upgrade local-ccm build/templates/charts/local-ccm \
   --namespace kube-system \
   --values values.yaml
 ```

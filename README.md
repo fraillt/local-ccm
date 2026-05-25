@@ -95,13 +95,13 @@ export LOCAL_CCM_VER=<specify version>
 1. Apply the manifests:
 
 ```bash
-kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/local-ccm.yaml
+kubectl apply -f https://github.com/cozystack/local-ccm/releases/download/$LOCAL_CCM_VER/local-ccm.yaml
 ```
 
 2. (Optional) Deploy node-lifecycle-controller:
 
 ```bash
-kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/node-lifecycle-controller.yaml
+kubectl apply -f https://github.com/cozystack/local-ccm/releases/download/$LOCAL_CCM_VER/node-lifecycle-controller.yaml
 ```
 
 3. Verify deployment:
@@ -120,11 +120,19 @@ kubectl get node <node-name> -o jsonpath='{.status.addresses}' | jq
 
 ### Deploy with Helm
 
-The Helm chart deploys both local-ccm and node-lifecycle-controller:
+Published Helm charts deploy both local-ccm and node-lifecycle-controller:
 
 ```bash
-helm install local-ccm ./charts/local-ccm --namespace kube-system
+export LOCAL_CCM_OWNER=<github-owner>
+export LOCAL_CCM_VER=<release-version>
+
+helm install local-ccm oci://ghcr.io/$LOCAL_CCM_OWNER/charts/local-ccm \
+  --version $LOCAL_CCM_VER \
+  --namespace kube-system \
+  --create-namespace
 ```
+
+For local chart development, render the release templates first with `make render RELEASE_VERSION=$LOCAL_CCM_VER REPOSITORY_OWNER=$LOCAL_CCM_OWNER` and then install from `build/templates/charts/local-ccm`.
 
 The node-lifecycle-controller is enabled by default. To configure it:
 
@@ -152,8 +160,7 @@ machine:
       cloud-provider: external
 cluster:
   manifests:
-  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/rbac.yaml
-  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/daemonset.yaml
+  - url: https://github.com/${LOCAL_CCM_OWNER}/local-ccm/releases/download/${LOCAL_CCM_VER}/local-ccm.yaml
 ```
 
 This configuration:
@@ -321,7 +328,27 @@ CGO_ENABLED=0 go build -o node-lifecycle-controller ./cmd/node-lifecycle-control
 ### Build Container Image
 
 ```bash
-docker build -t ghcr.io/fraillt/local-ccm:latest .
+make image-build TAG=dev
+make image-push TAG=$LOCAL_CCM_VER
+```
+
+### Render Release Assets
+
+```bash
+export LOCAL_CCM_OWNER=<github-owner>
+export LOCAL_CCM_VER=<release-version>
+
+make render \
+  RELEASE_VERSION=$LOCAL_CCM_VER \
+  REPOSITORY_OWNER=$LOCAL_CCM_OWNER
+
+make chart-package \
+  RELEASE_VERSION=$LOCAL_CCM_VER \
+  REPOSITORY_OWNER=$LOCAL_CCM_OWNER
+
+make release-artifacts \
+  RELEASE_VERSION=$LOCAL_CCM_VER \
+  REPOSITORY_OWNER=$LOCAL_CCM_OWNER
 ```
 
 ## Development
@@ -344,12 +371,14 @@ local-ccm/
 │   │   └── controller.go          # Node lifecycle controller logic
 │   └── checker/
 │       └── checker.go             # ICMP reachability checker
-├── charts/
-│   └── local-ccm/                 # Helm chart
-├── deploy/
-│   ├── rbac.yaml                  # Static manifests (local-ccm only)
-│   └── daemonset.yaml
+├── scripts/
+│   └── render-templates.sh        # Generates release assets from templates
+├── templates/
+│   ├── charts/local-ccm/          # Helm chart templates for release packaging
+│   └── static/                    # Static manifest templates for release assets
+├── build/                         # Generated output from make render/package targets
 ├── Dockerfile
+├── Makefile
 ├── go.mod
 └── README.md
 ```

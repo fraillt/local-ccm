@@ -30,6 +30,9 @@ vendor/
 .DS_Store
 Thumbs.db
 
+# Generated build artifacts
+build/
+
 # Kubernetes files
 kubeconfig
 *.kubeconfig

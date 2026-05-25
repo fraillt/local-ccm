@@ -1,0 +1,10 @@
+# Exclude everything by default and only send files the Docker build needs.
+*
+
+!Dockerfile
+!go.mod
+!go.sum
+!cmd/
+!cmd/**
+!pkg/
+!pkg/**

@@ -15,6 +15,7 @@ permissions:
 
 env:
   IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/local-ccm
+  CHART_REPOSITORY: oci://ghcr.io/${{ github.repository_owner }}/charts
 
 jobs:
   # Validate the repository on every event. This also verifies that the Docker
@@ -38,24 +39,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Run Go tests
-        run: go test ./...
-
-      - name: Build Go binaries
-        run: go build ./...
-
-      - name: Lint Helm chart
-        run: helm lint templates/charts/local-ccm
-
-      - name: Build container image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64
-          push: false
-          tags: local-ccm:validate
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Validate repository
+        run: |
+          make validate \
+            CACHE_FROM=type=gha \
+            CACHE_TO=type=gha,mode=max
 
   # Tag pushes publish the container image, Helm chart, and GitHub Release
   # assets from one runner so the release path stays linear and easy to follow.
@@ -89,9 +77,7 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           {
             echo "version=${version}"
-            echo "platforms=linux/amd64,linux/arm64"
-            echo "workdir=${RUNNER_TEMP}/release-workdir"
-            echo "artifacts_dir=${RUNNER_TEMP}/local-ccm-artifacts"
+            echo "build_dir=${RUNNER_TEMP}/local-ccm-release"
           } >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GHCR
@@ -102,61 +88,25 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push container image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: ${{ steps.release.outputs.platforms }}
-          push: true
-          tags: ${{ env.IMAGE_REPOSITORY }}:${{ steps.release.outputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          make image-push \
+            TAG="${{ steps.release.outputs.version }}" \
+            IMAGE_REPOSITORY="${{ env.IMAGE_REPOSITORY }}" \
+            PUSH_PLATFORMS=linux/amd64,linux/arm64 \
+            CACHE_FROM=type=gha \
+            CACHE_TO=type=gha,mode=max
 
-      - name: Render versioned templates
+      - name: Publish Helm chart and collect release manifests
         shell: bash
         run: |
           set -euo pipefail
-
-          workdir="${{ steps.release.outputs.workdir }}"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          cp -R templates "${workdir}"
-
-          while IFS= read -r -d '' file; do
-            sed -i \
-              -e "s|{REPLACE_VERSION}|${{ steps.release.outputs.version }}|g" \
-              -e "s|{REPLACE_OWNER}|${{ github.repository_owner }}|g" \
-              "${file}"
-          done < <(find "${workdir}/templates" -type f -name '*.yaml' -print0)
-
-      - name: Publish Helm chart
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          workdir="${{ steps.release.outputs.workdir }}"
-          package_dir="${workdir}/helm-package"
-          rm -rf "${package_dir}"
-          mkdir -p "${package_dir}"
 
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
-          helm package \
-            "${workdir}/templates/charts/local-ccm" \
-            --destination "${package_dir}" \
-            --version "${{ steps.release.outputs.version }}"
-          helm push "${package_dir}/local-ccm-${{ steps.release.outputs.version }}.tgz" oci://ghcr.io/${{ github.repository_owner }}/charts
-
-      - name: Collect static manifests
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          workdir="${{ steps.release.outputs.workdir }}"
-          artifacts_dir="${{ steps.release.outputs.artifacts_dir }}"
-          rm -rf "${artifacts_dir}"
-          mkdir -p "${artifacts_dir}"
-
-          cp "${workdir}/templates/static/local-ccm.yaml" "${artifacts_dir}/local-ccm.yaml"
-          cp "${workdir}/templates/static/node-lifecycle-controller.yaml" "${artifacts_dir}/node-lifecycle-controller.yaml"
+          make chart-push release-artifacts \
+            RELEASE_VERSION="${{ steps.release.outputs.version }}" \
+            REPOSITORY_OWNER="${{ github.repository_owner }}" \
+            BUILD_DIR="${{ steps.release.outputs.build_dir }}" \
+            CHART_REPOSITORY="${{ env.CHART_REPOSITORY }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -164,5 +114,5 @@ jobs:
           name: ${{ steps.release.outputs.version }}
           generate_release_notes: true
           files: |
-            ${{ steps.release.outputs.artifacts_dir }}/local-ccm.yaml
-            ${{ steps.release.outputs.artifacts_dir }}/node-lifecycle-controller.yaml
+            ${{ steps.release.outputs.build_dir }}/artifacts/local-ccm.yaml
+            ${{ steps.release.outputs.build_dir }}/artifacts/node-lifecycle-controller.yaml
