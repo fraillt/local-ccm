@@ -2,7 +2,7 @@
 
 image:
   repository: ghcr.io/fraillt/local-ccm
-  tag: "{GIT_TAG_VERSION}"
+  tag: "{REPLACE_VERSION}"
   pullPolicy: Always
 # Service account configuration
 serviceAccount:
@@ -66,7 +66,7 @@ nodeLifecycleController:
   enabled: true
   image:
     repository: ghcr.io/fraillt/local-ccm
-    tag: "{GIT_TAG_VERSION}" # Defaults to appVersion
+    tag: "{REPLACE_VERSION}" # Defaults to appVersion
     pullPolicy: IfNotPresent
   # Controller configuration
   controller:
