@@ -1,8 +1,8 @@
 # Default values for local-ccm
 
 image:
-  repository: ghcr.io/cozystack/local-ccm
-  tag: v0.3.0
+  repository: ghcr.io/{REPLACE_OWNER}/local-ccm
+  tag: "{REPLACE_VERSION}"
   pullPolicy: Always
 # Service account configuration
 serviceAccount:
@@ -10,6 +10,10 @@ serviceAccount:
   name: local-ccm
 # IP detection configuration
 ipDetection:
+  # CIDR subnet to select external IP from (e.g. 203.0.113.0/24).
+  # If set, the interface IP matching this subnet is used as ExternalIP;
+  # falls back to `externalIPTarget` if no match is found
+  externalIPSubnet: ""
   # Target IP for external IP detection via 'ip route get'
   externalIPTarget: "8.8.8.8"
   # Target IP for internal IP detection via 'ip route get'
@@ -60,8 +64,8 @@ nodeLifecycleController:
   # Enable node lifecycle controller
   enabled: true
   image:
-    repository: ghcr.io/cozystack/local-ccm
-    tag: "v0.3.0" # Defaults to appVersion
+    repository: ghcr.io/{REPLACE_OWNER}/local-ccm
+    tag: "{REPLACE_VERSION}" # Defaults to appVersion
     pullPolicy: IfNotPresent
   # Controller configuration
   controller:

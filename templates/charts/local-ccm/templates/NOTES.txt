@@ -26,4 +26,4 @@ Configuration:
   - Remove uninitialized taint: {{ .Values.controller.removeTaint }}
   - Reconcile interval: {{ .Values.controller.reconcileInterval }}
 
-For more information, visit: https://github.com/cozystack/local-ccm
+For more information, visit: https://github.com/{REPLACE_OWNER}/local-ccm

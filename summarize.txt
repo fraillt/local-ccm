@@ -1,0 +1,26 @@
+Last commit: 322a6367
+Title: feat: add --external-ip-subnet flag for subnet-based ExternalIP detection
+
+Key changes
+
+1. External IP detection
+- Added a new `--external-ip-subnet` CLI flag in `cmd/local-ccm/main.go`.
+- Reconciliation now tries subnet-based ExternalIP detection first and falls back to `--external-ip-target` if no subnet match is found.
+- Added `DetectIPBySubnet` in `pkg/detector/ip_detector.go`; it scans only up interfaces, returns the first IP found inside the CIDR, and errors when no interface matches.
+
+2. Docs and deployment flow
+- Updated `README.md` to document the new subnet flag and added an example configuration for subnet-based ExternalIP detection.
+- Deployment instructions now point to GitHub release artifacts (`local-ccm.yaml` and `node-lifecycle-controller.yaml`) instead of applying separate raw manifests.
+- Image and registry references were changed from `cozystack` to `fraillt`, including the default registry in `Makefile`.
+
+3. Templates, manifests, and Helm chart
+- Moved static manifests and the Helm chart under `templates/` so CI can stamp release versions into them.
+- Added `templates/README.md` to document that release-artifact flow.
+- Updated Helm chart metadata and values to use `ghcr.io/fraillt/local-ccm`, expose `ipDetection.externalIPSubnet`, and keep `{REPLACE_VERSION}` placeholders for release rendering.
+- Helm templates now set `.Release.Namespace` on namespaced resources and pass `--external-ip-subnet` into the DaemonSet when configured.
+- Old standalone RBAC files under `deploy/` were removed as part of the template/layout move.
+
+4. CI and release automation
+- Added `.github/workflows/ci.yaml`.
+- CI now validates the repo on PRs and pushes by running Go tests, `go build`, `helm lint`, and a Docker image build.
+- Tag builds now publish the multi-arch container image to `ghcr.io/fraillt/local-ccm`, package and push the Helm chart as an OCI artifact, render versioned templates, and attach the static YAML manifests to the GitHub release.

@@ -54,12 +54,13 @@ helm install local-ccm ./charts/local-ccm \
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `image.repository` | Container image repository | `ghcr.io/cozystack/local-ccm` |
-| `image.tag` | Container image tag | `v0.1.0` |
+| `image.repository` | Container image repository | `ghcr.io/{REPLACE_OWNER}/local-ccm` |
+| `image.tag` | Container image tag | `{REPLACE_VERSION}` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 | `serviceAccount.create` | Create service account | `true` |
 | `serviceAccount.name` | Service account name | `local-ccm` |
 | `ipDetection.externalIPTarget` | Target IP for external IP detection | `8.8.8.8` |
+| `ipDetection.externalIPSubnet` | External IP assignment based on provided subnet (empty = disabled) | `""` |
 | `ipDetection.internalIPTarget` | Target IP for internal IP detection (empty = disabled) | `""` |
 | `controller.removeTaint` | Remove uninitialized taint | `true` |
 | `controller.reconcileInterval` | Reconciliation interval | `10s` |
