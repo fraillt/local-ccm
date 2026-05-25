@@ -2,16 +2,16 @@ apiVersion: v2
 name: local-ccm
 description: Local Cloud Controller Manager for Kubernetes - detects and manages node IP addresses
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.2.0
+appVersion: "{REPLACE_VERSION}"
 keywords:
   - kubernetes
   - cloud-controller-manager
   - ccm
   - node-controller
-home: https://github.com/cozystack/local-ccm
+home: https://github.com/{REPLACE_OWNER}/local-ccm
 sources:
-  - https://github.com/cozystack/local-ccm
+  - https://github.com/{REPLACE_OWNER}/local-ccm
 maintainers:
   - name: Andrei Kvapil
     email: kvapss@gmail.com

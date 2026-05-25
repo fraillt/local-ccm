@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: {{ include "local-ccm.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "local-ccm.labels" . | nindent 4 }}
 spec:
@@ -36,6 +37,9 @@ spec:
         - /usr/local/bin/local-ccm
         args:
         - --node-name=$(NODE_NAME)
+        {{- if .Values.ipDetection.externalIPSubnet }}
+        - --external-ip-subnet={{ .Values.ipDetection.externalIPSubnet }}
+        {{- end }}
         - --external-ip-target={{ .Values.ipDetection.externalIPTarget }}
         {{- if .Values.ipDetection.internalIPTarget }}
         - --internal-ip-target={{ .Values.ipDetection.internalIPTarget }}

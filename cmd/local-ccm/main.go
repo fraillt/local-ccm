@@ -38,6 +38,7 @@ var (
 	kubeconfig        string
 	internalIPTarget  string
 	externalIPTarget  string
+	externalIPSubnet  string
 	runOnce           bool
 	removeTaint       bool
 	reconcileInterval time.Duration
@@ -48,6 +49,7 @@ func init() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to kubeconfig file (for local testing)")
 	flag.StringVar(&internalIPTarget, "internal-ip-target", "", "Target IP for internal IP detection via 'ip route get'. If empty, internal IP detection is disabled")
 	flag.StringVar(&externalIPTarget, "external-ip-target", "8.8.8.8", "Target IP for external IP detection via 'ip route get'")
+	flag.StringVar(&externalIPSubnet, "external-ip-subnet", "", "CIDR subnet to select external IP from (e.g. 203.0.113.0/24). If set, the interface IP matching this subnet is used as ExternalIP; falls back to --external-ip-target if no match is found")
 	flag.BoolVar(&runOnce, "run-once", false, "Run once and exit instead of running in a loop")
 	flag.BoolVar(&removeTaint, "remove-taint", true, "Remove node.cloudprovider.kubernetes.io/uninitialized taint")
 	flag.DurationVar(&reconcileInterval, "reconcile-interval", 10*time.Second, "Interval between reconciliation loops")
@@ -63,8 +65,8 @@ func main() {
 	}
 
 	klog.Infof("Starting local-ccm for node %s", nodeName)
-	klog.V(2).Infof("Configuration: internalIPTarget=%q externalIPTarget=%q",
-		internalIPTarget, externalIPTarget)
+	klog.V(2).Infof("Configuration: internalIPTarget=%q externalIPTarget=%q externalIPSubnet=%q",
+		internalIPTarget, externalIPTarget, externalIPSubnet)
 
 	// Create Kubernetes client
 	k8sClient, err := createKubernetesClient(kubeconfig)
@@ -123,13 +125,27 @@ func reconcile(ctx context.Context, nodeUpdater *node.Updater) error {
 	}
 	// If internalIPTarget is not set, preserve existing InternalIP (e.g., set by kubelet)
 
-	// Always detect and update External IP
-	klog.V(3).Infof("Detecting external IP using target %s", externalIPTarget)
-	detectedExternalIP, err := detector.DetectIP(externalIPTarget)
-	if err != nil {
-		return fmt.Errorf("failed to detect external IP: %w", err)
+	// Detect External IP
+	var detectedExternalIP string
+	if externalIPSubnet != "" {
+		klog.V(3).Infof("Detecting external IP using subnet %s", externalIPSubnet)
+		ip, err := detector.DetectIPBySubnet(externalIPSubnet)
+		if err != nil {
+			klog.V(2).Infof("Subnet-based external IP detection failed (%v), falling back to target %s", err, externalIPTarget)
+		} else {
+			detectedExternalIP = ip
+			klog.V(2).Infof("Detected external IP via subnet: %s", detectedExternalIP)
+		}
 	}
-	klog.V(2).Infof("Detected external IP: %s", detectedExternalIP)
+	if detectedExternalIP == "" {
+		klog.V(3).Infof("Detecting external IP using target %s", externalIPTarget)
+		var err error
+		detectedExternalIP, err = detector.DetectIP(externalIPTarget)
+		if err != nil {
+			return fmt.Errorf("failed to detect external IP: %w", err)
+		}
+		klog.V(2).Infof("Detected external IP: %s", detectedExternalIP)
+	}
 
 	// Check if external IP equals internal IP - if so, don't set external IP
 	if internalIP, hasInternal := addressMap[v1.NodeInternalIP]; hasInternal && internalIP == detectedExternalIP {

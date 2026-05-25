@@ -87,18 +87,21 @@ The controller uses priority-based filtering:
 
 ### Deploy local-ccm
 
+0. Specify which version you want to apply
+```bash
+export LOCAL_CCM_VER=<specify version>
+```
+
 1. Apply the manifests:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/daemonset.yaml
+kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/local-ccm.yaml
 ```
 
 2. (Optional) Deploy node-lifecycle-controller:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/nlc-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/nlc-deployment.yaml
+kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/node-lifecycle-controller.yaml
 ```
 
 3. Verify deployment:
@@ -149,8 +152,8 @@ machine:
       cloud-provider: external
 cluster:
   manifests:
-  - url: https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/rbac.yaml
-  - url: https://raw.githubusercontent.com/cozystack/local-ccm/main/deploy/daemonset.yaml
+  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/rbac.yaml
+  - url: https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/daemonset.yaml
 ```
 
 This configuration:
@@ -176,6 +179,7 @@ The following command-line flags are available:
 | `--node-name` | Name of the node to update (use NODE_NAME env var) | - | Yes |
 | `--internal-ip-target` | Target IP for internal IP detection via netlink. If empty, internal IP detection is disabled | `""` (disabled) | No |
 | `--external-ip-target` | Target IP for external IP detection via netlink | `"8.8.8.8"` | No |
+| `--external-ip-subnet` | CIDR subnet to select external IP from (e.g. `203.0.113.0/24`). If set, the interface IP matching this subnet is used as ExternalIP; falls back to `--external-ip-target` if no match is found | `""` (disabled) | No |
 | `--remove-taint` | Remove node.cloudprovider.kubernetes.io/uninitialized taint | `true` | No |
 | `--reconcile-interval` | Interval between reconciliation loops | `10s` | No |
 | `--run-once` | Run once and exit instead of running in a loop | `false` | No |
@@ -183,6 +187,17 @@ The following command-line flags are available:
 | `--v` | Log level (0-5) | `0` | No |
 
 ### Example Configurations
+
+#### Using Subnet-Based External IP Detection
+
+```yaml
+args:
+- --node-name=$(NODE_NAME)
+- --external-ip-subnet=203.0.113.0/24
+- --reconcile-interval=10s
+```
+
+This selects the interface IP that falls within `203.0.113.0/24` as the ExternalIP. If no interface matches the subnet, detection falls back to `--external-ip-target`.
 
 #### Only External IP (Default)
 
@@ -306,7 +321,7 @@ CGO_ENABLED=0 go build -o node-lifecycle-controller ./cmd/node-lifecycle-control
 ### Build Container Image
 
 ```bash
-docker build -t ghcr.io/cozystack/local-ccm:latest .
+docker build -t ghcr.io/fraillt/local-ccm:latest .
 ```
 
 ## Development
