@@ -87,18 +87,21 @@ The controller uses priority-based filtering:
 
 ### Deploy local-ccm
 
+0. Specify which version you want to apply
+```bash
+export LOCAL_CCM_VER=<specify version>
+```
+
 1. Apply the manifests:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/daemonset.yaml
+kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/local-ccm.yaml
 ```
 
 2. (Optional) Deploy node-lifecycle-controller:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/nlc-rbac.yaml
-kubectl apply -f https://raw.githubusercontent.com/fraillt/local-ccm/main/deploy/nlc-deployment.yaml
+kubectl apply -f https://github.com/fraillt/local-ccm/releases/download/$LOCAL_CCM_VER/node-lifecycle-controller.yaml
 ```
 
 3. Verify deployment:
